@@ -6,7 +6,7 @@
   // @author       eyes
   // @match        *://*/*
   // @grant        none
-  // @supportURL  https://blog.csdn.net/tongkongyu/article/details/116353736
+  // @supportURL   https://eyesblog.gitee.io/
   // ==/UserScript==
 
     (function () {
@@ -24,7 +24,7 @@
         }
 
         //浏览器视口的高度
-        let getWindowHeight = () => {
+        var getWindowHeight = function() {
             var windowHeight = 0;
             if (document.compatMode == 'CSS1Compat') 
                 windowHeight = document.documentElement.clientHeight;
@@ -34,7 +34,7 @@
         }
 
         //文档的总高度
-        let getScrollHeight = () => {
+        var getScrollHeight = function() {
             var scrollHeight = 0,
                 bodyScrollHeight = 0,
                 documentScrollHeight = 0;
@@ -44,40 +44,56 @@
             return scrollHeight;
         }
 
-        // 滚动事件
-        setInterval(function() {
-            // 判断页面是否滑到底部
+        // 判断是否到顶或底
+        var isBottomOrTop = function() {
             var bottomFlag = (getScrollTop() + getWindowHeight() == getScrollHeight()) ? true : false;
             var topFlag = (getScrollTop() == 0) ? true : false;
-            if (bottomFlag || topFlag)
-                speed = 0;
-            else
+            if (bottomFlag || topFlag) return true;
+            else return false;
+        }
+
+        // 滚动事件
+        function scroll() {
+            var clearInter = setInterval(function() {
                 document.documentElement.scrollTop += speed;
-        }, 5)
+                if(isBottomOrTop) clearInterval(clearInter);
+            }, 5);
+            // 单击页面停止滚动
+            document.onclick = function() {
+                speed = 0;
+                clearInterval(clearInter);
+            }
+            // 滑动滚轮页面停止滚动
+            document.DOMMouseScroll = function() { 
+                speed = 0;
+                clearInterval(clearInter); 
+            }
+            // 同时按 CTRL + ALT 键停止滚动
+            document.onkeydown = function() {
+                e = event || window.event;
+                if (e && e.altKey && e.ctrlKey) {
+                    speed = 0;
+                    clearInterval(clearInter);
+                };
+            }
+        }
 
         // 判断是否需要滚动
-        document.onkeydown = (e) => {
+        document.onkeydown = function(e) {
             e = event || window.event;
             // 同时按上键与alt键向上滚动
             if (e && e.keyCode == 38 && e.altKey) {
-                let bottomFlag = (getScrollTop() + getWindowHeight() == getScrollHeight()) ? true : false;
+                var bottomFlag = (getScrollTop() + getWindowHeight() == getScrollHeight()) ? true : false;
                 if (bottomFlag) document.documentElement.scrollTop += -1;
                 speed -= 1.5;
+                scroll()
             }
             // 同时按下键与alt键向下滚动
             if (e && e.keyCode == 40 && e.altKey) {
-                let topFlag = (getScrollTop() == 0) ? true : false;
+                var topFlag = (getScrollTop() == 0) ? true : false;
                 if (topFlag) document.documentElement.scrollTop += 1;
                 speed += 1.5;
+                scroll();
             }
-            // 同时按 CTRL + ALT 键停止滚动
-            if (e && e.altKey && e.ctrlKey) speed = 0;
         }
-
-        // 单击页面停止滚动
-        document.onclick = () => { speed = 0; }
-
-        // 滑动滚轮页面停止滚动
-        document.onmousewheel = () => { speed = 0; }
-        document.addEventListener("DOMMouseScroll", () => { speed = 0; })
     })();

@@ -67,7 +67,7 @@
             document.onkeydown = (e) => {
                 e = event || window.event;
                 // 同时按上键与alt键向上滚动
-                if (e && e.keyCode == 38 && e.altKey) { 
+                if (e && e.keyCode == 38 && e.altKey) {
                     let bottomFlag = (getScrollTop() + getWindowHeight() == getScrollHeight()) ? true : false;
                     if (bottomFlag) {
                         document.documentElement.scrollTop += -1;

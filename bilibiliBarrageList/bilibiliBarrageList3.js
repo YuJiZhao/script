@@ -1,18 +1,18 @@
 // 允许跨域请求，防止浏览器拦截
-var meta = document.createElement("meta");
+let meta = document.createElement("meta");
 meta.httpEquiv = "Access-Control-Allow-Origin";
 meta.content = "*";
 $("head")[0].appendChild(meta);
 
 // 初始化若干变量
-var page_loc = location.href;
-var page_start = page_loc.indexOf("?p=");
-var page_p;
+let page_loc = location.href;
+let page_start = page_loc.indexOf("?p=");
+let page_p;
 
 // 获取视频cid
 if (page_start == -1 || page_start == 1) page_p = 0;
 else page_p = page_loc.slice(page_start + 3) - 1;
-var page_cid = window.__INITIAL_STATE__.videoData.pages[page_p].cid;
+let page_cid = window.__INITIAL_STATE__.videoData.pages[page_p].cid;
 
 // 发起请求，拿到弹幕数据
 $.ajax({
@@ -30,13 +30,14 @@ $.ajax({
 });
 
 // 存储数据
-function data_deal(data) {
-    console.log(data);
-    var data_list = new Array(); // 存信息
-    var data_arr = new Array(); // 存内容
-    var data_length = data.length;
+let data_deal = data => {
+    let data_list = new Array(); // 存信息
+    let data_arr = new Array(); // 存内容
+    let data_length = data.length;
     for (var i = 8; i < data_length; i++) {
-        var data_array = data[i].attributes.p.value.split(",");
+        let data_array = data[i].attributes.p.value.split(",");
+        data_array.splice(5, 4);
+        data_array.splice(1, 3);
         $.each(data_array, function (i) {
             data_array[i] = parseFloat(data_array[i]); // 转换类型，便于排序
         })
@@ -45,23 +46,28 @@ function data_deal(data) {
     }
 
     // 执行排序
-    data_sort(data_list, 0, data_list.length - 1, data_arr);
+    data_sort(data_list, 0, data_length - 9, data_arr);
 
     // 修改弹幕列表
-    $(".bui-collapse-header").bind("click", function () {
-        var clearInter = setInterval(function () {
-            if ($(".player-auxiliary-danmaku-load-status").css("display") == "none") {
-                list_change(data_list, data_arr);
-                clearInterval(clearInter);
-            }
-        }, 100);
-    });
+    let clear = setInterval(() => {
+        if ($(".bui-collapse-header")[0]) {
+            clearInterval(clear);
+            $(".bui-collapse-header").click(() => {
+                let clearInter = setInterval(function () {
+                    if ($(".player-auxiliary-danmaku-load-status").css("display") == "none") {
+                        clearInterval(clearInter);
+                        list_change(data_list, data_arr);
+                    }
+                }, 100);
+            })
+        }
+    }, 100)
 }
 
 // 数据排序(快排算法)
-function data_sort(data_list, l, r, data_arr) {
+let data_sort = (data_list, l, r, data_arr) => {
     if (l < r) {
-        var i = l,
+        let i = l,
             j = r,
             temp = data_list[l],
             t1, t2, t3;
@@ -88,17 +94,26 @@ function data_sort(data_list, l, r, data_arr) {
     }
 }
 
+// 查找算法
+let binary_search = (arr, time) => {
+    arr.forEach((i, v) => {
+        if (0 < v - time < 1) return i;
+        if (v - time > 1) return -1;
+    });
+    return -1;
+}
+
 // 时间格式转换(分转秒)
-function time_m_s(a) {
+let time_m_s = a => {
     if (a.length == 2) return a[0] * 60 + a[1];
     else return a[0] * 3600 + a[1] * 60 + a[2];
 }
 
 // 时间格式转换(秒转分)
-function time_s_m(a) {
+let time_s_m = a => {
     a = Math.floor(a);
-    var m = Math.floor(a / 60);
-    var s = (a - Math.floor(a / 60) * 60);
+    let m = Math.floor(a / 60);
+    let s = (a - Math.floor(a / 60) * 60);
     if (m < 0) m = "00";
     else if (m < 10) m = "0" + String(m);
     if (s < 10) s = "0" + String(s);
@@ -106,122 +121,122 @@ function time_s_m(a) {
 }
 
 // 发送日期格式转换
-function data_s_d(a) {
-    var date = new Date(a * 1000);
-    var M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
-    var D = date.getDate();
+let data_s_d = a => {
+    let date = new Date(a * 1000);
+    let M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+    let D = date.getDate();
     if (D < 10) D = "0" + String(D) + ' ';
     else D = D + ' ';
-    var h = date.getHours();
+    let h = date.getHours();
     if (h < 10) h = "0" + String(h) + ":";
     else if (h == 0) h = "00" + ":";
     else h = h + ":";
-    var m = date.getMinutes();
+    let m = date.getMinutes();
     if (m < 10) m = "0" + String(m);
     else if (m == 0) m = "00";
     return M + D + h + m;
 }
 
 // 获取当前视频播放秒数
-function get_now_s() {
-    var time_now = $('.bilibili-player-video-time-now')[0].innerHTML.split(":");
+let get_now_s = () => {
+    let time_now = $('.bilibili-player-video-time-now')[0].innerHTML.split(":");
     $.each(time_now, function (i) {
         time_now[i] = parseInt(time_now[i]);
     })
     return time_m_s(time_now);
 }
 
-function list_change(data_list, data_arr) {
+let list_change = (data_list, data_arr) => {
     // 修改页面控制
     $(".player-auxiliary-danmaku-btn-time").removeAttr("orderby");
     $(".player-auxiliary-danmaku-btn-danmaku").removeAttr("orderby");
     $(".player-auxiliary-danmaku-btn-date").removeAttr("orderby");
     $(".player-auxiliary-danmaku-function > .player-auxiliary-danmaku-btn-danmaku")[0].innerHTML = "滚动弹幕(共" + data_arr.length + "条)";
 
-    // 弹幕排序
-    list_sort(data_list, data_arr);
-
-    // 开启与停止滚动控制
-    // $('.player-auxiliary-danmaku-function').click(function () {
-    //     if () {
-
-    //     } else {
-    //         list_lighting();
-    //         list_roll();
-    //     }
-    // });
-}
-
-function list_sort(data_list, data_arr) {
     // 破坏初始列表结构
-    $(".player-auxiliary-danmaku-wrap > div > ul").empty();
     $(".player-auxiliary-danmaku-wrap > .player-auxiliary-danmaku-contaner").removeClass("player-auxiliary-danmaku-contaner player-auxiliary-bscrollbar");
     $(".player-auxiliary-danmaku-wrap").off();
     $(".player-auxiliary-danmaku-wrap > div > ul").off();
 
     // 清除BFC
-    var div = document.createElement("div");
-    var nothing = document.createTextNode(".");
+    let div = document.createElement("div");
+    let nothing = document.createTextNode(".");
     div.appendChild(nothing);
     $(".player-auxiliary-danmaku-wrap > div > ul")[0].appendChild(div);
     $(div).addClass("BFC-nothing");
     $(".BFC-nothing").css("opacity", "0");
 
-    // 构造有序列表
-    $(data_arr).each(function (i, v) {
-        var li = document.createElement("li");
-        var span1 = document.createElement("span");
-        var span2 = document.createElement("span");
-        var span3 = document.createElement("span");
-        var span4 = document.createElement("span");
-        var text1 = document.createTextNode(time_s_m(data_list[i][0]));
-        var text2 = document.createTextNode(v);
-        var text3 = document.createTextNode(data_s_d(data_list[i][4]));
-        var text4 = document.createTextNode(">");
+    // 监听视频播放
+    let danmaku_length = $(".player-auxiliary-danmaku-wrap > div > ul > li").length; // 获取当前展示的弹幕数量
+    if (parseFloat($(".player-auxiliary-danmaku-wrap").css("height").replace("px", "")) >= parseFloat($(".player-auxiliary-danmaku-wrap > div > ul").css("height").replace("px", ""))) {
+        $(".player-auxiliary-danmaku-wrap > div > ul").empty();
+        list_structure(data_list, data_arr, 0, danmaku_length - 1);
+    } else {
+        let isChange = $(".bilibili-player-video-time-now")[0].innerHTML;
+        setInterval(() => {
+            if (isChange != $(".bilibili-player-video-time-now")[0].innerHTML) {
+                // 获取列表首尾
+                let now_i = binary_search(data_list, get_now_s());
+                // 判断是否需要更新
+                if (now_i != -1) {
+                    let now_s = get_now_s(); // 获取当前视频播放时间戳
+                    list_structure(data_list, data_arr, , ); // 构建列表
+                }
+                isChange = $(".bilibili-player-video-time-now")[0].innerHTML;
+            }
+        }, 1000);
+    }
+
+    // 开启与停止滚动控制
+}
+
+// 构建弹幕列表
+let list_structure = (data_list, data_arr, start, end) => {
+    for (let i = start; i <= end; i++) {
+        let li = document.createElement("li");
+        let span1 = document.createElement("span");
+        let span2 = document.createElement("span");
+        let span3 = document.createElement("span");
+        let text1 = document.createTextNode(time_s_m(data_list[i][0]));
+        let text2 = document.createTextNode(data_arr[i]);
+        let text3 = document.createTextNode(data_s_d(data_list[i][1]));
         span1.appendChild(text1);
         span2.appendChild(text2);
         span3.appendChild(text3);
-        span4.appendChild(text4);
-        $(li).attr("dmno", i);
-        $(span2).attr("title", v);
-        $(li).addClass("danmaku-info-row");
+        li.appendChild(span4);
         $(span1).addClass("danmaku-info-time");
         $(span2).addClass("danmaku-info-danmaku");
         $(span3).addClass("danmaku-info-date");
-        $(span4).addClass("danmaku-info-animate");
         li.appendChild(span1);
         li.appendChild(span2);
         li.appendChild(span3);
-        li.appendChild(span4);
-        $(".player-auxiliary-danmaku-wrap > div > ul")[0].appendChild(li);
-        $('.danmaku-info-animate').css({
-            'position': 'absolute',
-            'width': '15px',
-            'height': '100%',
-            'padding': '0',
-            'left': '0px',
-            'font-size': '15px',
-            'color': 'rgb(1,185,245)',
-            'transition': '1s ease-in-out'
-        });
-    });
-
-    // 播放动画(监听视频播放进度)
-    var isChange = $(".bilibili-player-video-time-now")[0].innerHTML;
-    player_animate(data_list, get_now_s());
-    setInterval(function () {
-        if (isChange != $(".bilibili-player-video-time-now")[0].innerHTML) {
-            player_animate(data_list);  // 动画播放
-            isChange = $(".bilibili-player-video-time-now")[0].innerHTML;
+        if (i > ) {
+            let span4 = document.createElement("span");
+            let text4 = document.createTextNode(">");
+            span4.appendChild(text4);
+            $(span4).addClass("danmaku-info-animate");
         }
-    }, 1000);
+        $(li).addClass("danmaku-info-row");
+        $(".player-auxiliary-danmaku-wrap > div > ul")[0].appendChild(li);
+    }
+    $('.danmaku-info-animate').css({
+        'position': 'absolute',
+        'width': '15px',
+        'height': '100%',
+        'padding': '0',
+        'left': '0px',
+        'font-size': '15px',
+        'color': 'rgb(1,185,245)',
+        'transition': '1s ease-in-out'
+    });
 }
 
 // 播放动画
 function player_animate(data_list) {
     var time_now_s = get_now_s();
     var length = data_list.length;
-    var begin = -1, end = -1;
+    var begin = -1,
+        end = -1;
     for (var i = 0; i < length; i++) {
         if (Math.floor(data_list[i][0]) < time_now_s) continue;
         if (Math.floor(data_list[i][0]) > time_now_s) break;
@@ -232,7 +247,7 @@ function player_animate(data_list) {
     var li_height = parseFloat($(".player-auxiliary-danmaku-wrap > div > ul > li").css("height").replace("px", ""));
     var li_width = parseFloat($(".player-auxiliary-danmaku-wrap > div > ul > li").css("width").replace("px", ""));
     for (var i = begin; i <= end; i++) {
-        if (length > 15 && i > 11) $(".player-auxiliary-danmaku-wrap > div > ul > li:first").css("margin-top", "-" + (i - 11) * li_height + "px");  // 列表滚动
-        $($('.player-auxiliary-danmaku-wrap > div > ul > li')[i]).find(".danmaku-info-animate").css("left", li_width);  // 播放动画
+        if (length > 15 && i > 11) $(".player-auxiliary-danmaku-wrap > div > ul > li:first").css("margin-top", "-" + (i - 11) * li_height + "px"); // 列表滚动
+        $($('.player-auxiliary-danmaku-wrap > div > ul > li')[i]).find(".danmaku-info-animate").css("left", li_width); // 播放动画
     }
 }

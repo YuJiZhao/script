@@ -8,30 +8,45 @@
     <title>Document</title>
 </head>
 
-<body>
+<body style="height: 2000px;">
+    <div>951</div><div>151</div>
+    <div>951</div><div>151</div><div>151</div>
+    <div>951</div><div>151</div><div>151</div>
+    <div>951</div><div>151</div><div>151</div>
+    <div>95156</div><div>151</div><div>151</div>
+    <div>95156</div><div>151</div><div>151</div>
+    <div>95156</div><div>151</div><div>151</div>
+    <div>95156</div><div>151</div><div>151</div>
+    <div>95156</div><div>151</div><div>151</div>
+    <div>95156</div><div>151</div><div>151</div>
+    <div>956</div><div>151</div><div>151</div>
+    <div>956</div><div>151</div><div>151</div>
+    <div>956</div><div>151</div><div>151</div>
+    <div>9</div><div>151</div><div>151</div>
+    <div>9</div><div>151</div><div>151</div>
+    <div>9</div>    <div>65156</div><div>151</div><div>151</div>
+    <div>95156</div><div>151</div><div>151</div>
+    <div>951</div><div>151</div><div>151</div>
+    <div>951</div><div>151</div><div>151</div>    <div>65156</div><div>151</div><div>151</div>
+    <div>95156</div><div>151</div><div>151</div>
+    <div>951</div><div>151</div><div>151</div>
+    <div>951</div><div>151</div><div>151</div>    <div>65156</div><div>151</div><div>151</div>
+    <div>95156</div><div>151</div><div>151</div>
+    <div>951</div><div>151</div><div>151</div>
+    <div>951</div><div>151</div><div>151</div>
     <script>
-        // 设置target属性
-        function setTarget() {
-            for (let i = 0; i < length; i++) {
-                if (!a[i].getAttribute("target")) a[i].setAttribute("target", "_blank");
+        window.addEventListener("wheel", function(e) { 
+            let evt = e || window.event;  //考虑兼容性
+            if (evt.deltaY > 0) {  //在火狐中 向下滚动是3 谷歌是125
+                console.log("向下滚动");
+            } else {           //在火狐中 向上滚动是-3 谷歌是-125
+                console.log("向上滚动");
             }
-        }
-        // 给每个a标签都加上target属性
-        let a = document.getElementsByTagName("a");
-        let length = a.length;
-        setTarget();
-
-        // 按下alt时取消新建页面跳转
-        document.onkeydown = (e) => {
-            e = event || window.event;
-            if (e && e.ctrlKey) for (let i = 0; i < length; i++) a[i].removeAttribute("target");
-        }
-
-        // 松开alt键重新添加target
-        document.onkeyup = (e) => {
-            e = event || window.event;
-            if (e && e.ctrlKey) setTarget();
-        }
+            //检查事件
+            console.log(evt.type, evt.deltaX, evt.deltaY, evt.deltaZ);  
+        }, {
+            passive: false
+        });
     </script>
 </body>
 

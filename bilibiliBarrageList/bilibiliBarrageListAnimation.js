@@ -190,8 +190,8 @@ let list_change = (data_list, data_arr) => {
                 // 获取列表首尾
                 let now_i = danmaku_search(data_list, get_now_s());
                 // 判断是否需要更新
-                if (now_i != -1 && parseInt(now_i) + danmaku_length -15 >= data_length) list_structure(data_list, data_arr, data_length - danmaku_length, data_length - 1);
-                else if (now_i != -1) list_structure(data_list, data_arr, parseInt(now_i) - 7, parseInt(now_i) + danmaku_length - 8);
+                if (now_i != -1 && parseInt(now_i) + danmaku_length -15 >= data_length) list_structure(data_list, data_arr, data_length - danmaku_length, data_length - 1, now_i, li_width);
+                else if (now_i != -1) list_structure(data_list, data_arr, parseInt(now_i) - 7, parseInt(now_i) + danmaku_length - 8, now_i, li_width);
                 isChange = $(".bilibili-player-video-time-now")[0].innerHTML;
             }
         }, 1000);
@@ -201,8 +201,9 @@ let list_change = (data_list, data_arr) => {
 }
 
 // 构建弹幕列表
-let list_structure = (data_list, data_arr, start, end) => {
+let list_structure = (data_list, data_arr, start, end, now_i, li_width) => {
     $(".player-auxiliary-danmaku-wrap > div > ul").empty(); // 清除先前的弹幕，重新构建
+    console.log("now_i:", now_i);
     for (let i = start; i <= end; i++) {
         let li = document.createElement("li");
         let span1 = document.createElement("span");
@@ -220,7 +221,29 @@ let list_structure = (data_list, data_arr, start, end) => {
         li.appendChild(span1);
         li.appendChild(span2);
         li.appendChild(span3);
+        if (i >= parseInt(now_i)) {
+            let span4 = document.createElement("span");
+            let text4 = document.createTextNode(">");
+            span4.appendChild(text4);
+            $(span4).addClass("danmaku-info-animate");
+            if (i == parseInt(now_i) && typeof(now_i) == "string") {
+                $(span4).addClass("danmaku-info-animate-playing");
+                $(span4).css("transition", "1s ease-in-out");
+            }
+            li.appendChild(span4);
+        }
         $(li).addClass("danmaku-info-row");
         $(".player-auxiliary-danmaku-wrap > div > ul")[0].appendChild(li);
     }
+    $(".danmaku-info-animate").css({
+        'position': 'absolute',
+        'width': '15px',
+        'height': '100%',
+        'padding': '0',
+        'left': '0px',
+        'font-size': '15px',
+        'color': 'rgb(1,185,245)',
+    });
+
+    $(".danmaku-info-animate-playing").css("left", li_width);
 }
